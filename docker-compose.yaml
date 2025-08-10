@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      VIPS_CONCURRENCY: 1
+      MAX_WORKERS: 2
+      GOMAXPROCS: 1
