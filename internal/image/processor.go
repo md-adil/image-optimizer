@@ -2,7 +2,6 @@ package image
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"fmt"
 	"io"
 	"log"
@@ -15,6 +14,7 @@ import (
 	"github.com/h2non/bimg"
 
 	"image-loader/internal/config"
+	"image-loader/internal/image/etag"
 )
 
 var (
@@ -131,6 +131,14 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	}
 	// Current design: pass buf.Bytes() directly to bimg to avoid extra full-copy
 	origImg := buf.Bytes()
+	// ETag Handling, if matched with cache don't cache it again.
+	tag := etag.Generate(origImg, srcURL, options)
+	if etag.Matched(r, tag) {
+		w.WriteHeader(http.StatusNotModified)
+		log.Println("Skipping already matched with E-Tag")
+		return
+	}
+
 	newImg, err := safeProcessImage(origImg, options)
 	putBuffer(buf)
 
@@ -149,8 +157,9 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	header.Set("Cache-Control", "public, max-age=2592000")
 
 	// ETag for validation — you can generate from content hash
-	etag := fmt.Sprintf(`"%x"`, sha1.Sum(newImg))
-	header.Set("ETag", etag)
+	if tag != "" {
+		header.Set("ETag", tag)
+	}
 
 	// Vary by Accept header (for WebP/AVIF negotiation)
 	header.Set("Vary", "Accept")

@@ -8,7 +8,6 @@ import (
 
 var allowedDomains = map[string]bool{}
 
-// LoadWhitelistedDomains reads the comma-separated list from env and stores in a map
 func LoadWhitelistedDomains() {
 	domains := os.Getenv("WHITELISTED_DOMAINS")
 	if domains == "" {
@@ -26,5 +25,8 @@ func LoadWhitelistedDomains() {
 
 // IsDomainAllowed checks if a domain is whitelisted
 func IsDomainAllowed(domain string) bool {
+	if len(allowedDomains) == 0 {
+		return true
+	}
 	return allowedDomains[domain]
 }
