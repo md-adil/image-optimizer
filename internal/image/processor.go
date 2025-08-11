@@ -135,6 +135,7 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	tag := etag.Generate(origImg, srcURL, options)
 	if etag.Matched(r, tag) {
 		w.WriteHeader(http.StatusNotModified)
+		putBuffer(buf)
 		log.Println("Skipping already matched with E-Tag")
 		return
 	}
