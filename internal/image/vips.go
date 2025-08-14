@@ -8,29 +8,30 @@ import (
 	"github.com/h2non/bimg"
 )
 
-func PrintSupportedFormats() {
-	fmt.Println("Supported AVIF:", bimg.IsImageTypeSupportedByVips(bimg.AVIF))
-	fmt.Println("Supported WebP:", bimg.IsImageTypeSupportedByVips(bimg.WEBP))
-	fmt.Println("Supported JPEG:", bimg.IsImageTypeSupportedByVips(bimg.JPEG))
+var formats = []bimg.ImageType{
+	bimg.JPEG,
+	bimg.PNG,
+	bimg.WEBP,
+	bimg.AVIF, // Will fail silently if not supported by libvips
+	bimg.TIFF,
 }
 
-// ---------- Warm libvips ----------
+func PrintSupportedFormats() {
+	for _, format := range formats {
+		if supported := bimg.IsImageTypeSupportedByVips(format); supported.Load && supported.Save {
+			fmt.Printf("Supported format: %s\n", bimg.ImageTypeName(format))
+		} else {
+			fmt.Printf("Format not supported: %s\n", bimg.ImageTypeName(format))
+		}
+	}
+}
+
 func WarmLibvips() {
-	// A tiny in-memory image (1x1 white PNG)
-	// PNG is safe to decode in all libvips builds
 	const onePixelPNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
 	img, err := base64.StdEncoding.DecodeString(onePixelPNG)
 	if err != nil {
 		log.Println("Failed to decode warm-up PNG:", err)
 		return
-	}
-
-	formats := []bimg.ImageType{
-		bimg.JPEG,
-		bimg.PNG,
-		bimg.WEBP,
-		bimg.AVIF, // Will fail silently if not supported by libvips
-		bimg.TIFF,
 	}
 
 	for _, format := range formats {

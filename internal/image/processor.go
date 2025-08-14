@@ -149,6 +149,7 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mimeType := fmt.Sprintf("image/%s", bimg.ImageTypeName(mediaType))
+	log.Println("Sending Type", mimeType)
 	// Detect MIME type
 	header := w.Header()
 	header.Set("Content-Type", mimeType)

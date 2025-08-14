@@ -7,11 +7,11 @@ import (
 )
 
 func GetMediaType(accept string) bimg.ImageType {
-	// if strings.Contains(accept, "image/avif") {
-	// 	return bimg.AVIF
-	// }
 	if strings.Contains(accept, "image/webp") {
 		return bimg.WEBP
+	}
+	if strings.Contains(accept, "image/avif") {
+		return bimg.AVIF
 	}
 	return bimg.JPEG
 }
