@@ -79,13 +79,19 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch original image
 	resp, err := httpClient.Get(srcURL)
-	if err != nil || resp.StatusCode != 200 {
+
+	if err != nil {
 		http.Error(w, "Failed to fetch source image", http.StatusBadGateway)
 		fmt.Printf("Error fetching image from %s: %v\n", srcURL, err)
 		return
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		http.Error(w, "Failed to fetch source image", http.StatusBadGateway)
+		return
+	}
 
 	// Read into buffer from pool (we still need full bytes for bimg)
 	buf := bufPool.Get().(*bytes.Buffer)
