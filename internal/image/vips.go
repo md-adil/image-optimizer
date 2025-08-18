@@ -26,7 +26,7 @@ func PrintSupportedFormats() {
 	}
 }
 
-func WarmLibvips() {
+func WarmLibVips() {
 	const onePixelPNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
 	img, err := base64.StdEncoding.DecodeString(onePixelPNG)
 	if err != nil {
