@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"image-loader/internal/config"
+	"image-loader/internal/domain"
 	"image-loader/internal/image"
+	"image-loader/internal/middleware"
 )
 
 func getMaxWorker() int {
@@ -30,9 +32,9 @@ func main() {
 	maxReq := config.EnvInt("MAX_HTTP_CONNS", max(4, maxWorkers*2))
 
 	mux := http.NewServeMux()
-	handler := image.LimitMiddleware(mux, maxReq, 25*time.Second)
-	handleImage := image.Handler()
-	mux.HandleFunc("/x/", handleImage)
+	handler := middleware.LimitMiddleware(mux, maxReq, 25*time.Second, "/health-z")
+	wl := domain.CreateWhitelist()
+	mux.Handle("/x/", wl.Guard(http.HandlerFunc(image.Handler())))
 	mux.HandleFunc("/health-z", healthCheck)
 
 	srv := &http.Server{
@@ -68,6 +70,7 @@ func main() {
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 }

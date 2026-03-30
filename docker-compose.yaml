@@ -7,3 +7,10 @@ services:
       VIPS_CONCURRENCY: 1
       MAX_WORKERS: 2
       GOMAXPROCS: 1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health-z"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

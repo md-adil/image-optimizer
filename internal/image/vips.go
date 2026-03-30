@@ -2,7 +2,6 @@ package image
 
 import (
 	"encoding/base64"
-	"fmt"
 	"log"
 
 	"github.com/h2non/bimg"
@@ -19,9 +18,9 @@ var formats = []bimg.ImageType{
 func PrintSupportedFormats() {
 	for _, format := range formats {
 		if supported := bimg.IsImageTypeSupportedByVips(format); supported.Load && supported.Save {
-			fmt.Printf("Supported format: %s\n", bimg.ImageTypeName(format))
+			log.Printf("Supported format: %s\n", bimg.ImageTypeName(format))
 		} else {
-			fmt.Printf("Format not supported: %s\n", bimg.ImageTypeName(format))
+			log.Printf("Format not supported: %s\n", bimg.ImageTypeName(format))
 		}
 	}
 }

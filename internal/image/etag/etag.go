@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -39,7 +40,7 @@ func hash(args ...any) (string, error) {
 func Generate(image []byte, url string, opt bimg.Options) string {
 	val, err := hash(image, url, opt.Height, opt.Width, opt.Quality, int(opt.Type), opt.Force, opt.Enlarge, opt.Compression)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("etag generation error: %v", err)
 		return ""
 	}
 	return val

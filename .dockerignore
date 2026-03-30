@@ -1,2 +1,19 @@
+# Git
 .git
-deployment
+.gitignore
+
+# Dev tools
+tmp/
+.air.toml
+
+# Docs
+*.md
+README*
+
+# Deployment / infra (not needed in image)
+deployment/
+docker-compose*.yaml
+
+# IDE
+.vscode/
+.idea/

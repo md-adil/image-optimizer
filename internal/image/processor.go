@@ -51,31 +51,41 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 	srcDomain := query.Get("d")
 
 	width, _ := strconv.Atoi(query.Get("w"))
-
 	height, _ := strconv.Atoi(query.Get("h"))
-
 	quality, _ := strconv.Atoi(query.Get("q"))
 
-	if srcDomain == "" {
-		http.Error(w, "Missing source domain", http.StatusBadRequest)
+	// Clamp dimensions and quality to sane limits
+	const maxDim = 8000
+	const maxQuality = 100
+	if width < 0 || width > maxDim {
+		http.Error(w, "Invalid width", http.StatusBadRequest)
 		return
 	}
-
-	if !IsDomainAllowed(srcDomain) {
-		http.Error(w, "Forbidden domain", http.StatusForbidden)
+	if height < 0 || height > maxDim {
+		http.Error(w, "Invalid height", http.StatusBadRequest)
+		return
+	}
+	if quality < 0 || quality > maxQuality {
+		http.Error(w, "Invalid quality", http.StatusBadRequest)
 		return
 	}
 
 	imagePath := strings.TrimPrefix(r.URL.Path, "/x/")
 	srcURL := fmt.Sprintf("https://%s/%s", srcDomain, imagePath)
 
-	fmt.Println("Processing Image:", srcURL)
+	log.Println("Processing Image:", srcURL)
 
-	resp, err := httpClient.Get(srcURL)
+	// Use request context so upstream fetch is cancelled if client disconnects
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, srcURL, nil)
+	if err != nil {
+		http.Error(w, "Failed to build request", http.StatusInternalServerError)
+		return
+	}
+	resp, err := httpClient.Do(req)
 
 	if err != nil {
 		http.Error(w, "Failed to fetch source image", http.StatusBadGateway)
-		fmt.Printf("Error fetching image from %s: %v\n", srcURL, err)
+		log.Printf("Error fetching image from %s: %v\n", srcURL, err)
 		return
 	}
 
@@ -140,7 +150,7 @@ func handleImage(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Failed to process image", http.StatusInternalServerError)
-		fmt.Printf("Error processing %s, mediaType: %v, image: %v\n ", srcURL, mediaType, err)
+		log.Printf("Error processing %s, mediaType: %v, image: %v\n", srcURL, mediaType, err)
 		return
 	}
 
@@ -169,7 +179,6 @@ func Handler() func(w http.ResponseWriter, r *http.Request) {
 	bimg.VipsCacheSetMax(100)
 	bimg.VipsCacheSetMaxMem(config.EnvInt("VIPS_CACHE_MAX_MEM_MB", 512)) // MB
 	PrintSupportedFormats()
-	LoadWhitelistedDomains()
 	WarmLibVips()
 	return handleImage
 }
